@@ -6,13 +6,6 @@ This is a Minimal Viable Product (MVP) for a personal note-taking application po
 
 The core functionalities include flexible note storage, quick access to recent notes, and intuitive natural language search powered by an LLM.
 
-## GitHub Repository
-
-You can find the Python code for this MVP in the following GitHub repository:
-
-[https://github.com/your-github-username/llm-powered-note-taker-mvp](https://github.com/your-github-username/llm-powered-note-taker-mvp)
-
-*(Please replace `your-github-username/llm-powered-note-taker-mvp` with the actual link to your repository once you create it.)*
 
 ## Tools and Architecture
 
@@ -56,29 +49,6 @@ The decision to use local LLMs (like the quantized Llama 3 model) and a local sp
 * **Prompt Engineering Efficiency (on weaker hardware):** If a relatively "dumb" quantized model can understand and process the prompts effectively, it suggests that the prompt design is robust and likely to work well even with more powerful cloud-based models. This is particularly relevant when developing on resource-constrained hardware.
 * **Offline Functionality:** Enables basic note-taking and search capabilities even without an internet connection (for speech recognition and LLM processing).
 
-### Limitations (Related to Hardware)
-
-Developing and running LLMs locally on a weak machine without a dedicated GPU presents several challenges:
-
-* **Performance:** Inference speed can be significantly slower compared to using cloud GPUs or local machines with powerful GPUs. This might result in noticeable delays in processing search queries and generating responses.
-* **Model Size and Complexity:** The choice of LLM is limited to smaller, quantized models to fit within the available RAM and processing power. This can impact the quality and coherence of the generated responses.
-* **Speech Recognition Accuracy:** The "small" Vosk models might have lower accuracy compared to larger, more sophisticated cloud-based alternatives, especially in noisy environments or with diverse accents.
-
-Despite these limitations, the goal of this MVP is to demonstrate the core concepts and feasibility of a locally powered note-taking application.
-
-### Better Performance on English
-
-The current setup might perform better with English due to the specific training data and potential biases in the chosen local models. While Vosk supports multiple languages, the accuracy and the LLM's understanding might be more optimized for English.
-
-## Demo
-
-### Live Demo
-
-A live demo of the application is available at:
-
-[http://your-deployed-app-link.com](http://your-deployed-app-link.com)
-
-*(Replace `http://your-deployed-app-link.com` with the actual link if you deploy the application online.)*
 
 ### Demo Video
 
@@ -127,5 +97,3 @@ The current MVP lays the groundwork for several advanced functionalities:
     uvicorn main:app --reload
     ```
 5.  **Open your web browser and navigate to `http://localhost:5000`.**
-
-You should now be able to interact with the basic note-taking application. You can try recording audio (if your browser supports it and you grant permission), typing in notes, and submitting search queries.
