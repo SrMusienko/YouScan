@@ -1,0 +1,30 @@
+[
+  {
+    "note_id": "15708865-5994-44e9-885c-b9d8c48e4c1f",
+    "type": "tasks",
+    "event_date": "2024-04-12",
+    "created_at": "2025-04-07T15:45:34.370926",
+    "content": "завершить написания резюме к пятнице"
+  },
+  {
+    "note_id": "ac39317a-e99c-4b8d-8a69-48253822ec32",
+    "type": "meetings",
+    "event_date": "2024-04-11T14:00:00",
+    "created_at": "2025-04-07T15:53:31.284363",
+    "content": "интервью с Сарой в четверг в 14:00"
+  },
+  {
+    "note_id": "be17bd24-3271-4adf-8d24-8b1e9e4d482d",
+    "type": "recipes",
+    "event_date": "missing",
+    "created_at": "2025-04-07T15:58:42.737455",
+    "content": "Сохранить рецепт Блинов - 1 стакан муки, 2 яйца, 1/2 стакана молока"
+  },
+  {
+    "note_id": "0f7b8e01-96ad-4a6c-b4e3-36d9536383a0",
+    "type": "vocabulary",
+    "event_date": "missing",
+    "created_at": "2025-04-07T16:03:43.650640",
+    "content": "#испанский correr - бежать"
+  }
+]

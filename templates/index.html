@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>YouScan</title>
+    <link rel="shortcut icon" href="/static/images/logo__1__400.ico" type="image/x-icon">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+            margin-bottom: 20px;
+        }
+
+        .content-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        #transcript {
+            width: calc(100% - 10px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1em;
+            min-height: 80px;
+        }
+
+        .speech-controls {
+            display: flex;
+            align-items: center;
+        }
+
+        .start-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .start-button:hover {
+            background-color: #45a049;
+        }
+
+        .start-button img {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+        }
+
+        #toggleBtn.recording {
+            background-color: #f44336;
+        }
+
+        #toggleBtn.recording:hover {
+            background-color: #d32f2f;
+        }
+
+        #status {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        #dataTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            display: none; /* Hidden by default */
+        }
+
+        #dataTable th, #dataTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #dataTable th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        #noDataMessage {
+            margin-top: 20px;
+            font-style: italic;
+            color: #777;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 0.8em;
+            color: #777;
+            border-top: 1px solid #eee;
+        }
+        #langSelect {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: flex-start; /* Align select to the left */
+            align-items: flex-end;
+        }
+
+        #language-select {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        #language-select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+        }
+        .lang-select-text { 
+            margin-left: 10px;
+            color: #777;
+            font-size: 0.9em; 
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div id="langSelect">
+                <select id="language-select" onchange="changeLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ru">Русский</option>
+                    <option value="uk">Українська</option>
+                </select>
+                <span class="lang-select-text">Select language for speech recognition</span>
+            </div>
+            <div class="content-section">
+                <div class="section-title">User Input</div>
+                <textarea id="transcript" placeholder="The recognized text will appear here..."></textarea>
+                <div class="speech-controls">
+                    <button id="toggleBtn" class="start-button">
+                        <img id="toggleIcon" src="/static/images/free-icon-voice-recognition.png" alt="Start" />
+                    </button>
+                    <button id="OkBtn" class="start-button">
+                        <img id="okIcon" src="/static/images/free-icon-check.png" alt="Ok" style="width: 24px; height: 24px; vertical-align: middle;" />
+                    </button>
+                    <div id="status" class="status">Ready to record</div>
+                </div>
+            </div>
+        </div>
+        <table id="dataTable" border="1">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <footer class="footer">
+            YouScan © 2025
+        </footer>
+    </div>
+    <script>
+        const OkBtn = document.getElementById('OkBtn');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const transcript = document.getElementById('transcript');
+        const status = document.getElementById('status');
+        const languageSelect = document.getElementById('language-select');
+        const dataTable = document.getElementById('dataTable');
+        const tableBody = dataTable.querySelector('tbody');
+        let socket;
+        let isRecording = false;
+        let finalText = "";
+
+        // Изначально кнопка "Ok" и выбор языка неактивны
+        OkBtn.disabled = true;
+        languageSelect.disabled = false; // Разрешаем менять язык до первого нажатия "Start"
+
+        OkBtn.addEventListener('click', async () => {
+            await fetchData();
+        });
+
+        async function fetchData() {
+            const text = document.getElementById("transcript").value;
+            const formData = new FormData();
+            formData.append("text", text);
+
+            // Удаляем сообщение, если было
+            const oldMsg = document.getElementById("noDataMessage");
+            if (oldMsg) oldMsg.remove();
+
+            try {
+                const response = await fetch("/get_anal", {
+                    method: "POST",
+                    body: formData
+                });
+                const data = await response.json();
+
+                const tableHead = dataTable.querySelector("thead");
+
+                tableHead.innerHTML = "";
+                tableBody.innerHTML = "";
+
+                // Проверка: сервер вернул текстовое сообщение
+                if ("message" in data) {
+                    dataTable.style.display = "none";
+
+                    const msg = document.createElement("div");
+                    msg.id = "noDataMessage";
+                    msg.textContent = data.message;
+                    msg.style.marginTop = "20px";
+                    msg.style.fontStyle = "italic";
+                    msg.style.color = "#777";
+                    document.querySelector(".main-content").appendChild(msg);
+
+                } else if (Array.isArray(data) && data.length > 0) {
+                    tableHead.innerHTML = `
+                        <tr>
+                            <th>Тип задачи</th>
+                            <th>Суть</th>
+                            <th>Дата события</th>
+                            <th>Действие</th>
+                        </tr>
+                    `;
+
+                    data.forEach(row => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td>${row.type}</td>
+                            <td>${row.content}</td>
+                            <td>${row.date}</td>
+                            <td><button class="delete-button" data-note-id="${row.note_id}">Удалить</button></td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    dataTable.style.display = "table";
+                    attachDeleteListeners();
+                } else {
+                    dataTable.style.display = "none";
+                    const msg = document.createElement("div");
+                    msg.id = "noDataMessage";
+                    msg.textContent = "No data received.";
+                    msg.style.marginTop = "20px";
+                    msg.style.fontStyle = "italic";
+                    msg.style.color = "#777";
+                    document.querySelector(".main-content").appendChild(msg);
+                }
+
+            } catch (error) {
+                console.error("Ошибка запроса:", error);
+                const msg = document.createElement("div");
+                msg.id = "noDataMessage";
+                msg.textContent = "Error fetching data.";
+                msg.style.marginTop = "20px";
+                msg.style.fontWeight = "bold";
+                msg.style.color = "#f44336";
+                document.querySelector(".main-content").appendChild(msg);
+                dataTable.style.display = "none";
+            }
+        }
+
+        function attachDeleteListeners() {
+            const deleteButtons = document.querySelectorAll('.delete-button');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', async (event) => {
+                    const noteId = event.target.dataset.noteId;
+                    if (noteId) {
+                        await deleteNote(noteId);
+                    }
+                });
+            });
+        }
+
+        async function deleteNote(noteId) {
+            try {
+                const response = await fetch(`/delete_note/${noteId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    console.log(`Note with ID ${noteId} deleted successfully.`);
+                    await fetchData(); // Refresh the table
+                } else {
+                    console.error(`Error deleting note with ID ${noteId}: ${response.status}`);
+                    alert('Failed to delete note.');
+                }
+            } catch (error) {
+                console.error('Error deleting note:', error);
+                alert('Error deleting note.');
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        });
+
+        function startRecording() {
+            if (socket) {
+                socket.close();
+            }
+            transcript.value='';
+            finalText = '';
+            socket = new WebSocket(`ws://${window.location.host}/ws/recognize`);
+
+            socket.onopen = function(e) {
+                isRecording = true;
+                document.getElementById("toggleIcon").src = "/static/images/free-icon-stop.png";
+                toggleBtn.classList.add('recording');
+                status.textContent = 'Recognition in progress...';
+                OkBtn.disabled = true; // Делаем кнопку "Ok" неактивной во время записи
+                languageSelect.disabled = true; // Запрещаем менять язык во время записи
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+
+                if (data.type === 'final') {
+                    finalText += (finalText ? ' ' : '') + data.text;
+                    transcript.value = finalText;
+                    status.textContent = '✓ ' + data.text;
+                } else if (data.type === 'partial') {
+                    transcript.value = finalText + (finalText ? ' ' : '') + data.text;
+                    status.textContent = '... ' + data.text;
+                } else if (data.type === 'error') {
+                    status.textContent = data.text;
+                }
+            };
+
+            socket.onclose = function(event) {
+                if (isRecording) {
+                    isRecording = false;
+                    document.getElementById("toggleIcon").src = "/static/images/free-icon-voice-recognition.png";
+                    toggleBtn.classList.remove('recording');
+                    status.textContent = 'Recognition stopped';
+                    OkBtn.disabled = false; // Разрешаем нажать "Ok" после остановки
+                    languageSelect.disabled = false; // Разрешаем менять язык после остановки
+                }
+                // No need to send data on close here, the user will click "Ok"
+            };
+
+            socket.onerror = function(error) {
+                console.error(`WebSocket error: ${error}`);
+                status.textContent = 'Connection error';
+                document.getElementById("toggleIcon").src = "/static/images/free-icon-voice-recognition.png";
+                toggleBtn.classList.remove('recording');
+                isRecording = false;
+                OkBtn.disabled = false; 
+                languageSelect.disabled = false; // И разрешаем менять язык
+            };
+        }
+
+        function stopRecording() {
+            if (socket) {
+                socket.send(JSON.stringify({action: 'stop'}));
+                socket.close();
+                isRecording = false;
+                document.getElementById("toggleIcon").src = "/static/images/free-icon-voice-recognition.png";
+                toggleBtn.classList.remove('recording');
+                status.textContent = 'Recognition stopped';
+                OkBtn.disabled = false; // Разрешаем нажать "Ok" после остановки
+                languageSelect.disabled = false; // Разрешаем менять язык после остановки
+            }
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (socket) {
+                socket.close();
+            }
+        });
+
+        async function changeLanguage(lang) {
+            if (!isRecording) {
+                try {
+                    const response = await fetch('/get_lang', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ lang })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    console.log('Язык успешно изменен');
+                } catch (error) {
+                    console.error('Ошибка при смене языка:', error);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
